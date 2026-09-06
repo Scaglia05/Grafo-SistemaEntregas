@@ -1,6 +1,6 @@
 # Escopo — Sistema de Entregas e Logística (Tema 7, Grupo 04)
 
-Teoria dos Grafos · Engenharia da Computação · 10º semestre (turma A)
+Teoria dos Grafos · Engenharia da Computação · 10º semestre
 FHO – Centro Universitário Fundação Hermínio Ometto, Araras/SP ·
 Prof. Thiago Giroto Milani
 

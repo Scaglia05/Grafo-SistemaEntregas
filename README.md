@@ -6,7 +6,7 @@ cliente — por **distância** ou por **custo** — usando **Dijkstra** e **Bell
 com os resultados comparáveis lado a lado e o trajeto desenhado sobre um mapa real.
 
 > Trabalho de **Teoria dos Grafos** — Tema 7, Grupo 04
-> Engenharia da Computação · 10º semestre (turma A)
+> Engenharia da Computação · 10º semestre
 > FHO – Centro Universitário Fundação Hermínio Ometto · Araras/SP
 
 ![.NET](https://img.shields.io/badge/.NET-10-512BD4)
