@@ -1,5 +1,9 @@
 # Escopo — Sistema de Entregas e Logística (Tema 7, Grupo 04)
 
+Teoria dos Grafos · Engenharia da Computação · 10º semestre (turma A)
+FHO – Centro Universitário Fundação Hermínio Ometto, Araras/SP ·
+Prof. Thiago Giroto Milani
+
 > **Atualização (pós-implementação):** o projeto foi implementado em
 > **Blazor Web App / .NET 10** (modelo moderno, sem `_Host.cshtml`) e com
 > nomes de pastas/arquivos em **português-BR**. As seções abaixo já refletem

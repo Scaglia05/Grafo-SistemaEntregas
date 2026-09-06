@@ -5,8 +5,9 @@ rotas como um **grafo ponderado** e calcula o **menor caminho** de um centro at�
 cliente — por **distância** ou por **custo** — usando **Dijkstra** e **Bellman-Ford**,
 com os resultados comparáveis lado a lado e o trajeto desenhado sobre um mapa real.
 
-> Trabalho de Grafos — Tema 7, Grupo 04
-> FHO – Centro Universitário Fundação Hermínio Ometto
+> Trabalho de **Teoria dos Grafos** — Tema 7, Grupo 04
+> Engenharia da Computação · 10º semestre (turma A)
+> FHO – Centro Universitário Fundação Hermínio Ometto · Araras/SP
 
 ![.NET](https://img.shields.io/badge/.NET-10-512BD4)
 ![Blazor](https://img.shields.io/badge/Blazor-Web%20App-512BD4)
@@ -107,7 +108,8 @@ O documento de escopo completo está em
 
 ## Agradecimentos
 
-Ao professor **Thiago Giroto Milani**, pela orientação na disciplina de Grafos.
+Ao professor **Thiago Giroto Milani**, pela orientação na disciplina de
+Teoria dos Grafos.
 
 ---
 
