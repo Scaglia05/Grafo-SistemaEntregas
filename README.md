@@ -105,6 +105,10 @@ O documento de escopo completo está em
 | Guilherme Augusto Scaglia | 111598 | scaglia@alunos.fho.edu.br |
 | Marcela Lovatto | 113626 | marcela.lovatto@alunos.fho.edu.br |
 
+## Agradecimentos
+
+Ao professor **Thiago Giroto Milani**, pela orientação na disciplina de Grafos.
+
 ---
 
 Projeto acadêmico — uso educacional.
