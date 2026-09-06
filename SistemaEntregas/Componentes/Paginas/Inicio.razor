@@ -1,0 +1,207 @@
+@page "/"
+@inject ServicoGrafo Grafo
+@inject ServicoDijkstra Dijkstra
+@inject ServicoBellmanFord BellmanFord
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<PageTitle>Calculadora de Rotas</PageTitle>
+
+<h1>Calculadora de Rotas de Entrega</h1>
+
+<div class="grid-calculadora">
+    <section class="painel">
+        <label>
+            Origem (centro de distribuição)
+            <select @bind="_origemId">
+                <option value="">— selecione —</option>
+                @foreach (var c in Grafo.Centros)
+                {
+                    <option value="@c.Id">@c.Nome</option>
+                }
+            </select>
+        </label>
+
+        <label>
+            Destino (cliente)
+            <select @bind="_destinoId">
+                <option value="">— selecione —</option>
+                @foreach (var c in Grafo.Clientes)
+                {
+                    <option value="@c.Id">@c.Nome</option>
+                }
+            </select>
+        </label>
+
+        <label>
+            Critério
+            <select @bind="_criterio">
+                <option value="@Criterio.Distancia">Distância (km)</option>
+                <option value="@Criterio.Custo">Custo (R$)</option>
+            </select>
+        </label>
+
+        <label>
+            Algoritmo
+            <select @bind="_modo">
+                <option value="dijkstra">Dijkstra</option>
+                <option value="bellman">Bellman-Ford</option>
+                <option value="ambos">Comparar os dois</option>
+            </select>
+        </label>
+
+        <button @onclick="Calcular" disabled="@(!PodeCalcular)">Calcular rota</button>
+
+        @if (_erro is not null)
+        {
+            <p class="aviso erro">@_erro</p>
+        }
+
+        @if (_resultados.Count > 0)
+        {
+            <table class="tabela-resultado">
+                <thead>
+                    <tr>
+                        <th>Métrica</th>
+                        @foreach (var r in _resultados)
+                        {
+                            <th>@r.Algoritmo</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Encontrado</td>
+                        @foreach (var r in _resultados)
+                        {
+                            <td>@(r.Encontrado ? "sim" : "não")</td>
+                        }
+                    </tr>
+                    <tr>
+                        <td>Peso total (@_criterio)</td>
+                        @foreach (var r in _resultados)
+                        {
+                            <td>@r.PesoTotal.ToString("0.##")</td>
+                        }
+                    </tr>
+                    <tr>
+                        <td>Nós visitados</td>
+                        @foreach (var r in _resultados)
+                        {
+                            <td>@r.NosVisitados</td>
+                        }
+                    </tr>
+                    <tr>
+                        <td>Arestas relaxadas</td>
+                        @foreach (var r in _resultados)
+                        {
+                            <td>@r.ArestasRelaxadas</td>
+                        }
+                    </tr>
+                    <tr>
+                        <td>Tempo (µs)</td>
+                        @foreach (var r in _resultados)
+                        {
+                            <td>@r.TempoMicrossegundos.ToString("0.#")</td>
+                        }
+                    </tr>
+                </tbody>
+            </table>
+
+            @foreach (var r in _resultados.Where(r => r.Encontrado))
+            {
+                <div class="caminho">
+                    <strong>@r.Algoritmo</strong>
+                    <ol>
+                        @foreach (var no in r.Caminho)
+                        {
+                            <li>@no.Rotulo</li>
+                        }
+                    </ol>
+                </div>
+            }
+
+            @if (_resultados.Count == 2 && _resultados.All(r => r.Encontrado))
+            {
+                bool concordam = Math.Abs(_resultados[0].PesoTotal - _resultados[1].PesoTotal) < 0.01;
+                <p class="aviso @(concordam ? "ok" : "erro")">
+                    @(concordam
+                        ? "✔ Os dois algoritmos concordam no peso total."
+                        : "✗ Divergência entre os algoritmos.")
+                </p>
+            }
+        }
+    </section>
+
+    <div id="mapa" class="mapa"></div>
+</div>
+
+@code {
+    private string _origemId = "";
+    private string _destinoId = "";
+    private Criterio _criterio = Criterio.Distancia;
+    private string _modo = "ambos";
+    private string? _erro;
+    private readonly List<ResultadoCaminho> _resultados = new();
+    private bool _mapaPronto;
+
+    private bool PodeCalcular =>
+        !string.IsNullOrEmpty(_origemId) && !string.IsNullOrEmpty(_destinoId);
+
+    protected override async Task OnAfterRenderAsync(bool primeiroRender)
+    {
+        if (!primeiroRender) return;
+
+        var nos = Grafo.Nos.Select(n => new
+        {
+            id = n.Id,
+            nome = n.Nome,
+            tipo = n.Tipo.ToString(),
+            lat = n.Latitude,
+            lng = n.Longitude
+        });
+
+        var arestas = Grafo.Rotas.Select(r => new
+        {
+            origem = r.OrigemId,
+            destino = r.DestinoId
+        });
+
+        await JS.InvokeVoidAsync("mapaEntregas.inicializar", "mapa", nos, arestas);
+        _mapaPronto = true;
+    }
+
+    private async Task Calcular()
+    {
+        _erro = null;
+        _resultados.Clear();
+
+        if (_modo is "dijkstra" or "ambos")
+            _resultados.Add(Dijkstra.Calcular(Grafo, _origemId, _destinoId, _criterio));
+
+        if (_modo is "bellman" or "ambos")
+            _resultados.Add(BellmanFord.Calcular(Grafo, _origemId, _destinoId, _criterio));
+
+        var comCaminho = _resultados.FirstOrDefault(r => r.Encontrado);
+        if (comCaminho is null)
+            _erro = _resultados.FirstOrDefault()?.Mensagem ?? "Nenhum caminho encontrado.";
+
+        if (_mapaPronto)
+        {
+            var coords = (comCaminho?.Caminho ?? new List<NoGrafo>())
+                .Select(n => new[] { n.Latitude, n.Longitude });
+            await JS.InvokeVoidAsync("mapaEntregas.desenharCaminho", coords);
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("mapaEntregas.destruir");
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+    }
+}

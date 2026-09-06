@@ -1,0 +1,158 @@
+@page "/grafo"
+@inject ServicoGrafo Dados
+
+<PageTitle>Gestão do Grafo</PageTitle>
+
+<h1>Gestão do Grafo</h1>
+
+<div class="grid-gestao">
+    <section class="painel">
+        <h2>Novo nó</h2>
+        <label>
+            Nome
+            <input @bind="_noNome" />
+        </label>
+        <label>
+            Tipo
+            <select @bind="_noTipo">
+                <option value="@TipoNo.CentroDistribuicao">Centro de Distribuição</option>
+                <option value="@TipoNo.Cliente">Cliente</option>
+            </select>
+        </label>
+        <label>
+            Latitude
+            <input type="number" step="any" @bind="_noLat" />
+        </label>
+        <label>
+            Longitude
+            <input type="number" step="any" @bind="_noLng" />
+        </label>
+        <button @onclick="AdicionarNo" disabled="@(string.IsNullOrWhiteSpace(_noNome))">Adicionar nó</button>
+    </section>
+
+    <section class="painel">
+        <h2>Nova rota</h2>
+        <label>
+            Origem
+            <select @bind="_rotaOrigem">
+                <option value="">— selecione —</option>
+                @foreach (var n in Dados.Nos)
+                {
+                    <option value="@n.Id">@n.Rotulo</option>
+                }
+            </select>
+        </label>
+        <label>
+            Destino
+            <select @bind="_rotaDestino">
+                <option value="">— selecione —</option>
+                @foreach (var n in Dados.Nos)
+                {
+                    <option value="@n.Id">@n.Rotulo</option>
+                }
+            </select>
+        </label>
+        <label>
+            Distância (km) — deixe 0 para calcular automaticamente
+            <input type="number" step="any" @bind="_rotaDistancia" />
+        </label>
+        <label>
+            Custo (R$)
+            <input type="number" step="any" @bind="_rotaCusto" />
+        </label>
+        <label class="checkbox">
+            <input type="checkbox" @bind="_rotaBidirecional" /> Bidirecional
+        </label>
+        <button @onclick="AdicionarRota" disabled="@(!PodeAdicionarRota)">Adicionar rota</button>
+    </section>
+</div>
+
+<h2>Nós (@Dados.Nos.Count)</h2>
+<table class="tabela-dados">
+    <thead>
+        <tr><th>Rótulo</th><th>Tipo</th><th>Lat</th><th>Long</th><th></th></tr>
+    </thead>
+    <tbody>
+        @foreach (var n in Dados.Nos)
+        {
+            <tr>
+                <td>@n.Rotulo</td>
+                <td>@n.Tipo</td>
+                <td>@n.Latitude</td>
+                <td>@n.Longitude</td>
+                <td><button class="link" @onclick="() => Dados.RemoverNo(n.Id)">remover</button></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h2>Rotas (@Dados.Rotas.Count)</h2>
+<table class="tabela-dados">
+    <thead>
+        <tr><th>Origem</th><th>Destino</th><th>Distância (km)</th><th>Custo (R$)</th><th>Bidir.</th><th></th></tr>
+    </thead>
+    <tbody>
+        @foreach (var r in Dados.Rotas)
+        {
+            <tr>
+                <td>@(Dados.BuscarNo(r.OrigemId)?.Nome ?? r.OrigemId)</td>
+                <td>@(Dados.BuscarNo(r.DestinoId)?.Nome ?? r.DestinoId)</td>
+                <td>@r.DistanciaKm</td>
+                <td>@r.Custo.ToString("0.##")</td>
+                <td>@(r.Bidirecional ? "sim" : "não")</td>
+                <td><button class="link" @onclick="() => Dados.RemoverRota(r.Id)">remover</button></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private string _noNome = "";
+    private TipoNo _noTipo = TipoNo.Cliente;
+    private double _noLat;
+    private double _noLng;
+
+    private string _rotaOrigem = "";
+    private string _rotaDestino = "";
+    private double _rotaDistancia;
+    private decimal _rotaCusto;
+    private bool _rotaBidirecional = true;
+
+    private bool PodeAdicionarRota =>
+        !string.IsNullOrEmpty(_rotaOrigem)
+        && !string.IsNullOrEmpty(_rotaDestino)
+        && _rotaOrigem != _rotaDestino;
+
+    private void AdicionarNo()
+    {
+        Dados.AdicionarNo(new NoGrafo
+        {
+            Nome = _noNome.Trim(),
+            Tipo = _noTipo,
+            Latitude = _noLat,
+            Longitude = _noLng
+        });
+
+        _noNome = "";
+        _noLat = 0;
+        _noLng = 0;
+    }
+
+    private void AdicionarRota()
+    {
+        Dados.AdicionarRota(new Rota
+        {
+            OrigemId = _rotaOrigem,
+            DestinoId = _rotaDestino,
+            DistanciaKm = _rotaDistancia,
+            Custo = _rotaCusto,
+            Bidirecional = _rotaBidirecional
+        });
+
+        _rotaOrigem = "";
+        _rotaDestino = "";
+        _rotaDistancia = 0;
+        _rotaCusto = 0;
+        _rotaBidirecional = true;
+    }
+}

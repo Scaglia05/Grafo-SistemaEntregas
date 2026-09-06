@@ -1,0 +1,23 @@
+@page "/erro"
+@using System.Diagnostics
+
+<PageTitle>Erro</PageTitle>
+
+<h1 class="text-danger">Erro</h1>
+<h2 class="text-danger">Ocorreu um erro ao processar a requisição.</h2>
+
+@if (ExibirIdRequisicao)
+{
+    <p><strong>ID da requisição:</strong> <code>@IdRequisicao</code></p>
+}
+
+@code {
+    [CascadingParameter]
+    private HttpContext? HttpContext { get; set; }
+
+    private string? IdRequisicao { get; set; }
+    private bool ExibirIdRequisicao => !string.IsNullOrEmpty(IdRequisicao);
+
+    protected override void OnInitialized() =>
+        IdRequisicao = Activity.Current?.Id ?? HttpContext?.TraceIdentifier;
+}

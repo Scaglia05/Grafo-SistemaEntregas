@@ -1,0 +1,111 @@
+# ---------------------------------------------------------------------------
+# .gitignore — projeto .NET / Blazor (Visual Studio / VS Code / Rider)
+# ---------------------------------------------------------------------------
+
+## Saída de build
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+[Ll]og/
+[Ll]ogs/
+artifacts/
+publish/
+[Pp]ublish/
+*.binlog
+
+## Resultados de build / cache
+.vs/
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+.idea/
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+## MSBuild / Roslyn
+project.lock.json
+project.fragment.lock.json
+*.nuget.props
+*.nuget.targets
+.msbuild.binlog
+BenchmarkDotNet.Artifacts/
+
+## NuGet
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+.nuget/
+nuget.exe
+
+## Testes / cobertura
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.trx
+*.coverage
+*.coveragexml
+coverage*.json
+coverage*.xml
+coverage*.info
+TestResults/
+.coverage/
+
+## ASP.NET / Blazor
+*.pfx
+*.key
+appsettings.*.local.json
+secrets.json
+wwwroot/dist/
+node_modules/
+compilerconfig.json.defaults
+libman.json.bak
+
+## EF Core
+*.mdf
+*.ldf
+*.ndf
+
+## Arquivos temporários / do sistema
+*.tmp
+*.temp
+*.log
+run.log
+*.bak
+*.cache
+*.swp
+*~
+*.DS_Store
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+## Publicação / deploy
+*.[Pp]ublish.xml
+*.azurePubxml
+*.pubxml
+*.pubxml.user
+PublishScripts/
+*.deployment
+*.zip
+
+## Diversos
+*.pidb
+*.svclog
+*.scc
+_UpgradeReport_Files/
+Backup*/
+UpgradeLog*.XML
+UpgradeLog*.htm
+ServiceFabricBackup/
+.localhistory/
+.history/
+*.tlog

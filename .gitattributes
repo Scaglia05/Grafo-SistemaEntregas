@@ -1,0 +1,17 @@
+# Normaliza finais de linha: LF no repositório para arquivos de texto
+* text=auto
+
+*.cs      text diff=csharp
+*.razor   text
+*.csproj  text
+*.sln     text eol=crlf
+*.json    text
+*.js      text
+*.css     text
+*.html    text
+*.md      text
+
+*.png     binary
+*.jpg     binary
+*.ico     binary
+*.pfx     binary
