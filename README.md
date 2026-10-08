@@ -60,15 +60,74 @@ na interface.
 
 ## Como executar
 
-Pré-requisito: **.NET 10 SDK**.
+Lista completa de pré-requisitos em [`REQUISITOS.md`](REQUISITOS.md). Em resumo:
+**.NET 10 SDK**, um navegador e conexão com a internet (o mapa é carregado por CDN).
+
+### 1. Verifique o .NET
+
+```bash
+dotnet --version
+```
+
+Deve mostrar `10.x.x` ou superior. Caso contrário, instale o SDK em
+https://dotnet.microsoft.com/download/dotnet/10.0
+
+### 2. Baixe o projeto
 
 ```bash
 git clone https://github.com/Scaglia05/Grafo-SistemaEntregas.git
 cd Grafo-SistemaEntregas/SistemaEntregas
+```
+
+Sem Git: no GitHub, **Code → Download ZIP**, extraia e entre na pasta
+`SistemaEntregas` (a que contém o `SistemaEntregas.csproj`).
+
+### 3. Execute
+
+```bash
 dotnet run
 ```
 
-Acesse **http://localhost:5080** (ou `https://localhost:7080`).
+Na primeira vez o .NET restaura e compila o projeto (alguns segundos). Quando
+aparecer `Now listening on: http://localhost:5080`, o sistema está no ar.
+
+### 4. Abra no navegador
+
+**http://localhost:5080**
+
+Para encerrar, volte ao terminal e pressione `Ctrl+C`.
+
+### Rodando pelo Visual Studio
+
+1. Abra a pasta `SistemaEntregas` (ou o arquivo `SistemaEntregas.csproj`).
+2. Escolha o perfil **http** ou **https** na barra superior.
+3. Pressione **F5** (com depuração) ou **Ctrl+F5** (sem depuração).
+
+### Como usar
+
+1. Em **Calculadora de Rota** (`/`), escolha o centro de distribuição de origem,
+   o cliente de destino, o critério (**Distância** ou **Custo**) e o algoritmo
+   (**Dijkstra**, **Bellman-Ford** ou **Comparar os dois**).
+2. Clique em **Calcular rota**. O caminho aparece em laranja no mapa, e o painel
+   mostra a sequência de paradas, o peso total e as métricas de cada algoritmo.
+3. Em **Gestão do Grafo** (`/grafo`), cadastre novos centros, clientes e rotas ou
+   remova os existentes. Se a distância da rota ficar em `0`, ela é calculada
+   automaticamente por Haversine.
+4. Volte à calculadora e recalcule: o novo cliente ou rota já entra nas opções.
+
+> Os dados ficam só em memória: ao reiniciar a aplicação, o grafo volta ao
+> estado inicial (3 centros, 8 clientes, 17 rotas).
+
+### Problemas comuns
+
+| Sintoma | Causa provável | Solução |
+|---|---|---|
+| `dotnet` não é reconhecido | SDK não instalado ou terminal aberto antes da instalação | instale o .NET 10 SDK e abra um novo terminal |
+| `The framework 'Microsoft.NETCore.App', version '10.0.0' was not found` | só o Runtime ou uma versão antiga instalada | instale o **SDK** 10 |
+| `Address already in use` | porta 5080 ocupada | feche o outro processo ou mude `applicationUrl` em `Properties/launchSettings.json` |
+| Mapa cinza, sem imagem | sem internet ou CDN bloqueada | verifique a conexão; o Leaflet e os tiles vêm da internet |
+| Aviso de certificado ao usar `https://localhost:7080` | certificado de desenvolvimento não confiável | rode `dotnet dev-certs https --trust` ou use a porta HTTP `5080` |
+| `No project was found` | comando executado fora da pasta do projeto | entre em `SistemaEntregas/` (onde está o `.csproj`) |
 
 ## Estrutura
 
