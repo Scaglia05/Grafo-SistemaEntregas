@@ -13,6 +13,12 @@ com os resultados comparáveis lado a lado e o trajeto desenhado sobre um mapa r
 ![Blazor](https://img.shields.io/badge/Blazor-Web%20App-512BD4)
 ![Leaflet](https://img.shields.io/badge/Leaflet-OpenStreetMap-199900)
 
+## Artigo
+
+[![Ler o artigo](https://img.shields.io/badge/Ler_o_artigo-PDF-C0392B?style=for-the-badge)](docs/artigo.pdf)
+
+Clique no botão acima para abrir o artigo do trabalho.
+
 ---
 
 ## Sobre
@@ -156,14 +162,14 @@ SistemaEntregas/
 O documento de escopo completo está em
 [`escopo-sistema-entregas.md`](escopo-sistema-entregas.md).
 
-## Grupo 04
+## Integrantes — Grupo 04
 
 | Nome | RA | E-mail |
 |---|---|---|
-| Caroline da Silva Grizante | 114105 | carolinegrizante105@alunos.fho.edu.br |
-| Emilly Emanuelly R. dos Santos | 114095 | emillyribeiro@alunos.fho.edu.br |
-| Guilherme Augusto Scaglia | 111598 | scaglia@alunos.fho.edu.br |
-| Marcela Lovatto | 113626 | marcela.lovatto@alunos.fho.edu.br |
+| Caroline da Silva Grizante | 114105 | [carolinegrizante105@alunos.fho.edu.br](mailto:carolinegrizante105@alunos.fho.edu.br) |
+| Emilly Emanuelly R. dos Santos | 114095 | [emillyribeiro@alunos.fho.edu.br](mailto:emillyribeiro@alunos.fho.edu.br) |
+| Guilherme Augusto Scaglia | 111598 | [scaglia@alunos.fho.edu.br](mailto:scaglia@alunos.fho.edu.br) |
+| Marcela Lovatto | 113626 | [marcela.lovatto@alunos.fho.edu.br](mailto:marcela.lovatto@alunos.fho.edu.br) |
 
 ## Agradecimentos
 
