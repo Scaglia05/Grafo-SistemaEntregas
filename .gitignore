@@ -109,3 +109,7 @@ ServiceFabricBackup/
 .localhistory/
 .history/
 *.tlog
+
+## Configuração local de ferramentas
+.claude/
+CLAUDE.md
