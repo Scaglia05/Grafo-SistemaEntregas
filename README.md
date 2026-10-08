@@ -105,7 +105,8 @@ Para encerrar, volte ao terminal e pressione `Ctrl+C`.
 
 ### Rodando pelo Visual Studio
 
-1. Abra a pasta `SistemaEntregas` (ou o arquivo `SistemaEntregas.csproj`).
+1. Dê dois cliques em **`SistemaEntregas.sln`** (na raiz do repositório). Não abra
+   como "pasta": use sempre a solução (ou o `SistemaEntregas.csproj`).
 2. Escolha o perfil **http** ou **https** na barra superior.
 3. Pressione **F5** (com depuração) ou **Ctrl+F5** (sem depuração).
 
