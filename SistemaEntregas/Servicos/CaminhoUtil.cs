@@ -4,25 +4,31 @@ namespace SistemaEntregas.Servicos;
 
 internal static class CaminhoUtil
 {
-    public static List<NoGrafo> Reconstruir(
+    public static ResultadoCaminho Novo(string algoritmo, Criterio criterio) =>
+        new() { Algoritmo = algoritmo, CriterioUsado = criterio };
+
+    public static ResultadoCaminho Concluir(
+        ResultadoCaminho resultado,
         ServicoGrafo grafo,
-        IReadOnlyDictionary<string, string?> anterior,
+        Dictionary<string, double> dist,
+        Dictionary<string, string?> anterior,
         string origemId,
         string destinoId)
     {
-        var caminho = new List<NoGrafo>();
-        var atual = destinoId;
-
-        while (true)
+        if (double.IsPositiveInfinity(dist[destinoId]))
         {
-            var no = grafo.BuscarNo(atual);
-            if (no is not null) caminho.Insert(0, no);
-
-            if (atual == origemId) break;
-            if (!anterior.TryGetValue(atual, out var proximo) || proximo is null) break;
-            atual = proximo;
+            resultado.Mensagem =
+                $"Não há caminho de {grafo.BuscarNo(origemId)?.Nome} até {grafo.BuscarNo(destinoId)?.Nome}.";
+            return resultado;
         }
 
-        return caminho;
+        resultado.Encontrado = true;
+        resultado.PesoTotal = Math.Round(dist[destinoId], 2);
+
+        for (string? id = destinoId; id is not null; anterior.TryGetValue(id, out id))
+            resultado.Caminho.Add(grafo.BuscarNo(id)!);
+        resultado.Caminho.Reverse();
+
+        return resultado;
     }
 }

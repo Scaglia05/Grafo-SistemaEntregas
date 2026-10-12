@@ -47,6 +47,13 @@ caminho; o valor didático está em comparar).
   `CalculadoraHaversine` etc.). Mantidos em inglês apenas os nomes que são
   convenção fixa do Blazor: `Program.cs`, `App.razor`, `_Imports.razor`,
   `wwwroot/`, `Properties/`.
+- **Interface simplificada para o usuário:** o usuário faz só três escolhas (de onde
+  sai, para quem vai, distância ou custo) e o resultado aparece sozinho, em
+  linguagem simples. A comparação Dijkstra vs Bellman-Ford continua obrigatória,
+  mas fica numa seção recolhível ("Comparar os algoritmos") e os dois algoritmos
+  sempre rodam — o antigo seletor "Dijkstra / Bellman-Ford / Comparar os dois" foi
+  removido. As telas passaram a se chamar "Calcular rota" e "Cadastros"; as rotas
+  (`/`, `/grafo`) e a estrutura de pastas não mudaram.
 - Abordagem visual: **mapa real (Leaflet/OSM) + Haversine**, confirmado pelo
   usuário — descartadas as opções "diagrama abstrato sem mapa" e "API paga do
   Google Maps"
@@ -89,8 +96,8 @@ Milani/
     │   │   ├── LayoutPrincipal.razor
     │   │   └── MenuNavegacao.razor
     │   └── Paginas/
-    │       ├── Inicio.razor             "/"      calculadora de rota + mapa
-    │       ├── Grafo.razor              "/grafo" CRUD de centros/clientes/rotas
+    │       ├── Inicio.razor             "/"      calcular rota + mapa
+    │       ├── Grafo.razor              "/grafo" cadastros (locais e rotas)
     │       └── Erro.razor               "/erro"
     └── wwwroot/
         ├── css/site.css
@@ -107,7 +114,7 @@ Milani/
 propriedade calculada `Rotulo` (emoji + nome conforme o tipo)
 
 **`Modelos/Rota.cs`** — `Id`, `OrigemId`, `DestinoId`, `DistanciaKm`, `Custo`
-(`decimal`), `Bidirecional` (default `true`), método `Peso(Criterio)` que retorna
+(`double`), `Bidirecional` (default `true`), método `Peso(Criterio)` que retorna
 `DistanciaKm` ou `Custo` conforme o critério
 
 **`Modelos/ResultadoCaminho.cs`** — `Algoritmo`, `Encontrado`, `Caminho`
@@ -126,26 +133,31 @@ algoritmos; cálculo automático da distância via `CalculadoraHaversine` quando
 São Paulo) + 8 clientes da região e 17 rotas com caminhos alternativos
 
 **`Servicos/ServicoDijkstra.cs`** — Dijkstra com
-`PriorityQueue<string, double>`, saída antecipada ao alcançar o destino,
-preenche `NosVisitados`, `TempoMicrossegundos` (`Stopwatch`) e `Mensagem`
-("cliente inalcançável" quando não há caminho)
+`PriorityQueue<string, double>`, descarte de entradas obsoletas da fila e saída
+antecipada ao alcançar o destino; preenche `NosVisitados`, `ArestasRelaxadas`,
+`TempoMicrossegundos` (`Stopwatch`) e `Mensagem` ("não há caminho…" quando o
+destino é inalcançável)
 
 **`Servicos/ServicoBellmanFord.cs`** — relaxamento de todas as arestas `V-1`
 vezes com parada antecipada quando uma iteração não altera nada; detecção e
 report de ciclo negativo; preenche `ArestasRelaxadas` e `TempoMicrossegundos`
 
-**`Servicos/CaminhoUtil.cs`** — `Reconstruir(...)` a partir do dicionário de
-predecessores, compartilhado pelos dois algoritmos
+**`Servicos/CaminhoUtil.cs`** — `Novo(...)` cria o `ResultadoCaminho` e
+`Concluir(...)` fecha o resultado (mensagem de inalcançável, peso total e caminho
+reconstruído a partir dos predecessores); compartilhado pelos dois algoritmos
 
-**`Componentes/Paginas/Inicio.razor`** — dropdown de origem (só centros), destino
-(só clientes), critério (distância/custo), algoritmo (Dijkstra / Bellman-Ford /
-Comparar os dois); mapa Leaflet com todos os nós e polyline do caminho; painel
-de resultado com o caminho em lista ordenada e tabela lado a lado das métricas de
-`ResultadoCaminho`; aviso de concordância/divergência entre os dois algoritmos
+**`Componentes/Paginas/Inicio.razor`** — "Calcular rota": três escolhas (de onde
+sai — só centros; para quem vai — só clientes; menor distância ou menor custo). O
+cálculo é automático a cada mudança e a tela já abre com um exemplo calculado.
+Mostra o melhor caminho (`A → B → C`) e o total em km ou R$, mapa Leaflet com todos
+os locais e a polyline do caminho, e uma seção recolhível "Comparar os
+algoritmos" com a tabela lado a lado de Dijkstra e Bellman-Ford (total, nós
+visitados, arestas relaxadas, tempo) e o aviso de concordância. Os dois algoritmos
+sempre rodam; não há seletor de algoritmo
 
-**`Componentes/Paginas/Grafo.razor`** — formulários para adicionar nó
-(nome, tipo, lat/long) e rota (origem, destino, distância opcional, custo,
-bidirecional); listagem e remoção de nós e rotas
+**`Componentes/Paginas/Grafo.razor`** — "Cadastros": formulários para adicionar
+local (nome, tipo, lat/long, com validação de faixa) e rota (de, para, custo,
+distância opcional, vale nos dois sentidos); listagem e remoção de locais e rotas
 
 **`Componentes/Roteador.razor`, `App.razor`, `_Imports.razor`,
 `LayoutPrincipal.razor`, `MenuNavegacao.razor`, `wwwroot/js/mapa.js`,
@@ -163,14 +175,11 @@ Itens que ficaram como possível melhoria:
 - Clicar no mapa na tela de gestão para capturar lat/long automaticamente
 - Ícones customizados de verdade para centro vs cliente (hoje usa emoji via
   `L.divIcon`)
-- Ressincronizar o mapa da tela `Inicio` quando o grafo é editado em `Grafo`
-  sem precisar recarregar a página
 - Thread-safety no `ServicoGrafo` (é singleton mutável acessado pela UI; com
   vários circuitos Blazor simultâneos há risco de corrida)
 - Pré-computar a lista de adjacência uma vez em vez de varrer `Rotas` a cada
   passo do Dijkstra (irrelevante nesta escala, mas é a forma "correta")
 - Testes automatizados comparando Dijkstra vs Bellman-Ford
-- Substituir as strings mágicas de seleção de algoritmo por um enum
 
 ## 7. Fora de escopo (não implementar sem pedido explícito)
 

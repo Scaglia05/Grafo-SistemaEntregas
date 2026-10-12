@@ -7,15 +7,8 @@ public class ServicoBellmanFord
 {
     public ResultadoCaminho Calcular(ServicoGrafo grafo, string origemId, string destinoId, Criterio criterio)
     {
-        var resultado = new ResultadoCaminho
-        {
-            Algoritmo = "Bellman-Ford",
-            CriterioUsado = criterio
-        };
-
-        var origem = grafo.BuscarNo(origemId);
-        var destino = grafo.BuscarNo(destinoId);
-        if (origem is null || destino is null)
+        var resultado = CaminhoUtil.Novo("Bellman-Ford", criterio);
+        if (grafo.BuscarNo(origemId) is null || grafo.BuscarNo(destinoId) is null)
         {
             resultado.Mensagem = "Origem ou destino inválido.";
             return resultado;
@@ -31,11 +24,9 @@ public class ServicoBellmanFord
         var anterior = new Dictionary<string, string?>();
         dist[origemId] = 0;
 
-        int totalNos = grafo.Nos.Count;
-
-        for (int i = 0; i < totalNos - 1; i++)
+        for (int i = 0; i < grafo.Nos.Count - 1; i++)
         {
-            bool houveMudanca = false;
+            bool mudou = false;
 
             foreach (var (de, para, peso) in arestas)
             {
@@ -47,37 +38,27 @@ public class ServicoBellmanFord
                 {
                     dist[para] = dist[de] + peso;
                     anterior[para] = de;
-                    houveMudanca = true;
+                    mudou = true;
                 }
             }
 
-            if (!houveMudanca) break;
+            if (!mudou) break;
         }
 
-        foreach (var (de, para, peso) in arestas)
-        {
-            if (!double.IsPositiveInfinity(dist[de]) && dist[de] + peso < dist[para])
-            {
-                sw.Stop();
-                resultado.TempoMicrossegundos = sw.Elapsed.TotalMicroseconds;
-                resultado.Mensagem = "Ciclo negativo detectado — menor caminho indefinido.";
-                return resultado;
-            }
-        }
+        bool cicloNegativo = arestas.Any(a =>
+            !double.IsPositiveInfinity(dist[a.De]) && dist[a.De] + a.Peso < dist[a.Para]);
 
         sw.Stop();
         resultado.TempoMicrossegundos = sw.Elapsed.TotalMicroseconds;
-        resultado.NosVisitados = dist.Count(kv => !double.IsPositiveInfinity(kv.Value));
 
-        if (double.IsPositiveInfinity(dist[destinoId]))
+        if (cicloNegativo)
         {
-            resultado.Mensagem = $"Cliente inalcançável a partir de {origem.Nome}.";
+            resultado.Mensagem = "Ciclo negativo detectado — menor caminho indefinido.";
             return resultado;
         }
 
-        resultado.Encontrado = true;
-        resultado.PesoTotal = Math.Round(dist[destinoId], 2);
-        resultado.Caminho = CaminhoUtil.Reconstruir(grafo, anterior, origemId, destinoId);
-        return resultado;
+        resultado.NosVisitados = dist.Count(kv => !double.IsPositiveInfinity(kv.Value));
+
+        return CaminhoUtil.Concluir(resultado, grafo, dist, anterior, origemId, destinoId);
     }
 }

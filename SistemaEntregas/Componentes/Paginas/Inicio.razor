@@ -1,20 +1,21 @@
 @page "/"
+@using System.Globalization
 @inject ServicoGrafo Grafo
 @inject ServicoDijkstra Dijkstra
 @inject ServicoBellmanFord BellmanFord
 @inject IJSRuntime JS
 @implements IAsyncDisposable
 
-<PageTitle>Calculadora de Rotas</PageTitle>
+<PageTitle>Calcular Rota</PageTitle>
 
-<h1>Calculadora de Rotas de Entrega</h1>
+<h1>Qual o melhor caminho de entrega?</h1>
+<p class="subtitulo">Escolha de onde a entrega sai e para quem ela vai. O mapa mostra o melhor caminho.</p>
 
 <div class="grid-calculadora">
     <section class="painel">
         <label>
-            Origem (centro de distribuição)
-            <select @bind="_origemId">
-                <option value="">— selecione —</option>
+            1. A entrega sai de
+            <select @bind="_origemId" @bind:after="Calcular">
                 @foreach (var c in Grafo.Centros)
                 {
                     <option value="@c.Id">@c.Nome</option>
@@ -23,9 +24,8 @@
         </label>
 
         <label>
-            Destino (cliente)
-            <select @bind="_destinoId">
-                <option value="">— selecione —</option>
+            2. E vai para
+            <select @bind="_destinoId" @bind:after="Calcular">
                 @foreach (var c in Grafo.Clientes)
                 {
                     <option value="@c.Id">@c.Nome</option>
@@ -33,103 +33,43 @@
             </select>
         </label>
 
-        <label>
-            Critério
-            <select @bind="_criterio">
-                <option value="@Criterio.Distancia">Distância (km)</option>
-                <option value="@Criterio.Custo">Custo (R$)</option>
-            </select>
-        </label>
+        <div>
+            <span class="rotulo">3. O que importa mais?</span>
+            <div class="opcoes">
+                <button class="@ClasseOpcao(Criterio.Distancia)" @onclick="() => Escolher(Criterio.Distancia)">📏 Menor distância</button>
+                <button class="@ClasseOpcao(Criterio.Custo)" @onclick="() => Escolher(Criterio.Custo)">💰 Menor custo</button>
+            </div>
+        </div>
 
-        <label>
-            Algoritmo
-            <select @bind="_modo">
-                <option value="dijkstra">Dijkstra</option>
-                <option value="bellman">Bellman-Ford</option>
-                <option value="ambos">Comparar os dois</option>
-            </select>
-        </label>
-
-        <button @onclick="Calcular" disabled="@(!PodeCalcular)">Calcular rota</button>
-
-        @if (_erro is not null)
+        @if (_dijkstra is { Encontrado: false })
         {
-            <p class="aviso erro">@_erro</p>
+            <p class="aviso erro">@_dijkstra.Mensagem</p>
         }
-
-        @if (_resultados.Count > 0)
+        else if (_dijkstra is not null && _bellman is not null)
         {
-            <table class="tabela-resultado">
-                <thead>
-                    <tr>
-                        <th>Métrica</th>
-                        @foreach (var r in _resultados)
-                        {
-                            <th>@r.Algoritmo</th>
-                        }
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Encontrado</td>
-                        @foreach (var r in _resultados)
-                        {
-                            <td>@(r.Encontrado ? "sim" : "não")</td>
-                        }
-                    </tr>
-                    <tr>
-                        <td>Peso total (@_criterio)</td>
-                        @foreach (var r in _resultados)
-                        {
-                            <td>@r.PesoTotal.ToString("0.##")</td>
-                        }
-                    </tr>
-                    <tr>
-                        <td>Nós visitados</td>
-                        @foreach (var r in _resultados)
-                        {
-                            <td>@r.NosVisitados</td>
-                        }
-                    </tr>
-                    <tr>
-                        <td>Arestas relaxadas</td>
-                        @foreach (var r in _resultados)
-                        {
-                            <td>@r.ArestasRelaxadas</td>
-                        }
-                    </tr>
-                    <tr>
-                        <td>Tempo (µs)</td>
-                        @foreach (var r in _resultados)
-                        {
-                            <td>@r.TempoMicrossegundos.ToString("0.#")</td>
-                        }
-                    </tr>
-                </tbody>
-            </table>
+            <div class="resultado">
+                <span class="rotulo">Melhor caminho</span>
+                <p class="rota-texto">@string.Join(" → ", _dijkstra.Caminho.Select(n => n.Nome))</p>
+                <p class="total">@Formatar(_dijkstra.PesoTotal)</p>
+            </div>
 
-            @foreach (var r in _resultados.Where(r => r.Encontrado))
-            {
-                <div class="caminho">
-                    <strong>@r.Algoritmo</strong>
-                    <ol>
-                        @foreach (var no in r.Caminho)
-                        {
-                            <li>@no.Rotulo</li>
-                        }
-                    </ol>
-                </div>
-            }
-
-            @if (_resultados.Count == 2 && _resultados.All(r => r.Encontrado))
-            {
-                bool concordam = Math.Abs(_resultados[0].PesoTotal - _resultados[1].PesoTotal) < 0.01;
-                <p class="aviso @(concordam ? "ok" : "erro")">
-                    @(concordam
-                        ? "✔ Os dois algoritmos concordam no peso total."
-                        : "✗ Divergência entre os algoritmos.")
+            <details>
+                <summary>Comparar os algoritmos</summary>
+                <table class="tabela-resultado">
+                    <thead>
+                        <tr><th></th><th>Dijkstra</th><th>Bellman-Ford</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Total</td><td>@Formatar(_dijkstra.PesoTotal)</td><td>@Formatar(_bellman.PesoTotal)</td></tr>
+                        <tr><td>Nós visitados</td><td>@_dijkstra.NosVisitados</td><td>@_bellman.NosVisitados</td></tr>
+                        <tr><td>Arestas relaxadas</td><td>@_dijkstra.ArestasRelaxadas</td><td>@_bellman.ArestasRelaxadas</td></tr>
+                        <tr><td>Tempo (µs)</td><td>@_dijkstra.TempoMicrossegundos.ToString("0.#", Pt)</td><td>@_bellman.TempoMicrossegundos.ToString("0.#", Pt)</td></tr>
+                    </tbody>
+                </table>
+                <p class="aviso @(Concordam ? "ok" : "erro")">
+                    @(Concordam ? "✔ Os dois algoritmos chegaram ao mesmo resultado." : "✗ Os algoritmos divergem.")
                 </p>
-            }
+            </details>
         }
     </section>
 
@@ -137,16 +77,27 @@
 </div>
 
 @code {
+    private static readonly CultureInfo Pt = CultureInfo.GetCultureInfo("pt-BR");
+
     private string _origemId = "";
     private string _destinoId = "";
     private Criterio _criterio = Criterio.Distancia;
-    private string _modo = "ambos";
-    private string? _erro;
-    private readonly List<ResultadoCaminho> _resultados = new();
-    private bool _mapaPronto;
+    private ResultadoCaminho? _dijkstra;
+    private ResultadoCaminho? _bellman;
 
-    private bool PodeCalcular =>
-        !string.IsNullOrEmpty(_origemId) && !string.IsNullOrEmpty(_destinoId);
+    private bool Concordam => Math.Abs(_dijkstra!.PesoTotal - _bellman!.PesoTotal) < 0.01;
+
+    private string ClasseOpcao(Criterio criterio) => criterio == _criterio ? "ativo" : "";
+
+    private string Formatar(double valor) => _criterio == Criterio.Distancia
+        ? $"{valor.ToString("0.#", Pt)} km"
+        : $"R$ {valor.ToString("N2", Pt)}";
+
+    protected override void OnInitialized()
+    {
+        _origemId = Grafo.Centros.FirstOrDefault()?.Id ?? "";
+        _destinoId = Grafo.Clientes.FirstOrDefault()?.Id ?? "";
+    }
 
     protected override async Task OnAfterRenderAsync(bool primeiroRender)
     {
@@ -160,38 +111,33 @@
             lat = n.Latitude,
             lng = n.Longitude
         });
-
-        var arestas = Grafo.Rotas.Select(r => new
-        {
-            origem = r.OrigemId,
-            destino = r.DestinoId
-        });
+        var arestas = Grafo.Rotas.Select(r => new { origem = r.OrigemId, destino = r.DestinoId });
 
         await JS.InvokeVoidAsync("mapaEntregas.inicializar", "mapa", nos, arestas);
-        _mapaPronto = true;
+
+        await Calcular();
+        StateHasChanged();
+    }
+
+    private Task Escolher(Criterio criterio)
+    {
+        _criterio = criterio;
+        return Calcular();
     }
 
     private async Task Calcular()
     {
-        _erro = null;
-        _resultados.Clear();
+        _dijkstra = _bellman = null;
 
-        if (_modo is "dijkstra" or "ambos")
-            _resultados.Add(Dijkstra.Calcular(Grafo, _origemId, _destinoId, _criterio));
-
-        if (_modo is "bellman" or "ambos")
-            _resultados.Add(BellmanFord.Calcular(Grafo, _origemId, _destinoId, _criterio));
-
-        var comCaminho = _resultados.FirstOrDefault(r => r.Encontrado);
-        if (comCaminho is null)
-            _erro = _resultados.FirstOrDefault()?.Mensagem ?? "Nenhum caminho encontrado.";
-
-        if (_mapaPronto)
+        if (_origemId != "" && _destinoId != "")
         {
-            var coords = (comCaminho?.Caminho ?? new List<NoGrafo>())
-                .Select(n => new[] { n.Latitude, n.Longitude });
-            await JS.InvokeVoidAsync("mapaEntregas.desenharCaminho", coords);
+            _dijkstra = Dijkstra.Calcular(Grafo, _origemId, _destinoId, _criterio);
+            _bellman = BellmanFord.Calcular(Grafo, _origemId, _destinoId, _criterio);
         }
+
+        var coordenadas = (_dijkstra?.Caminho ?? new List<NoGrafo>())
+            .Select(n => new[] { n.Latitude, n.Longitude });
+        await JS.InvokeVoidAsync("mapaEntregas.desenharCaminho", coordenadas);
     }
 
     public async ValueTask DisposeAsync()

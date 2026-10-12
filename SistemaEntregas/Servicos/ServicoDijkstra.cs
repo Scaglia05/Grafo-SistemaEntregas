@@ -7,15 +7,8 @@ public class ServicoDijkstra
 {
     public ResultadoCaminho Calcular(ServicoGrafo grafo, string origemId, string destinoId, Criterio criterio)
     {
-        var resultado = new ResultadoCaminho
-        {
-            Algoritmo = "Dijkstra",
-            CriterioUsado = criterio
-        };
-
-        var origem = grafo.BuscarNo(origemId);
-        var destino = grafo.BuscarNo(destinoId);
-        if (origem is null || destino is null)
+        var resultado = CaminhoUtil.Novo("Dijkstra", criterio);
+        if (grafo.BuscarNo(origemId) is null || grafo.BuscarNo(destinoId) is null)
         {
             resultado.Mensagem = "Origem ou destino inválido.";
             return resultado;
@@ -25,30 +18,28 @@ public class ServicoDijkstra
 
         var dist = grafo.Nos.ToDictionary(n => n.Id, _ => double.PositiveInfinity);
         var anterior = new Dictionary<string, string?>();
-        var finalizado = new HashSet<string>();
+        var fila = new PriorityQueue<string, double>();
 
         dist[origemId] = 0;
-
-        var fila = new PriorityQueue<string, double>();
         fila.Enqueue(origemId, 0);
 
-        while (fila.TryDequeue(out var atual, out _))
+        while (fila.TryDequeue(out var atual, out var distAtual))
         {
-            if (!finalizado.Add(atual)) continue;
-            resultado.NosVisitados++;
+            if (distAtual > dist[atual]) continue;
 
+            resultado.NosVisitados++;
             if (atual == destinoId) break;
 
             foreach (var (rota, vizinho) in grafo.Adjacencias(atual))
             {
-                if (finalizado.Contains(vizinho.Id)) continue;
+                resultado.ArestasRelaxadas++;
 
-                double candidato = dist[atual] + rota.Peso(criterio);
-                if (candidato < dist[vizinho.Id])
+                double candidato = distAtual + rota.Peso(criterio);
+                if (candidato < dist[vizinho])
                 {
-                    dist[vizinho.Id] = candidato;
-                    anterior[vizinho.Id] = atual;
-                    fila.Enqueue(vizinho.Id, candidato);
+                    dist[vizinho] = candidato;
+                    anterior[vizinho] = atual;
+                    fila.Enqueue(vizinho, candidato);
                 }
             }
         }
@@ -56,15 +47,6 @@ public class ServicoDijkstra
         sw.Stop();
         resultado.TempoMicrossegundos = sw.Elapsed.TotalMicroseconds;
 
-        if (double.IsPositiveInfinity(dist[destinoId]))
-        {
-            resultado.Mensagem = $"Cliente inalcançável a partir de {origem.Nome}.";
-            return resultado;
-        }
-
-        resultado.Encontrado = true;
-        resultado.PesoTotal = Math.Round(dist[destinoId], 2);
-        resultado.Caminho = CaminhoUtil.Reconstruir(grafo, anterior, origemId, destinoId);
-        return resultado;
+        return CaminhoUtil.Concluir(resultado, grafo, dist, anterior, origemId, destinoId);
     }
 }

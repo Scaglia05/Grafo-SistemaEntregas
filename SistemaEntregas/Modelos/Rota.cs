@@ -10,10 +10,10 @@ public class Rota
 
     public double DistanciaKm { get; set; }
 
-    public decimal Custo { get; set; }
+    public double Custo { get; set; }
 
     public bool Bidirecional { get; set; } = true;
 
     public double Peso(Criterio criterio) =>
-        criterio == Criterio.Distancia ? DistanciaKm : (double)Custo;
+        criterio == Criterio.Distancia ? DistanciaKm : Custo;
 }
