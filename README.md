@@ -34,14 +34,17 @@ Clique no botão acima para abrir o artigo do trabalho.
 
 ## Funcionalidades
 
-- Escolher origem (centro), destino (cliente), critério e algoritmo.
-- Modo **"Comparar os dois"**: tabela lado a lado com peso total, nós visitados,
-  arestas relaxadas e tempo em microssegundos de cada algoritmo, mais um aviso de
-  concordância/divergência.
-- **Mapa Leaflet + OpenStreetMap** mostrando todos os nós e destacando o trajeto
+- **Três escolhas e pronto:** de onde a entrega sai, para quem vai e o que importa
+  mais (**menor distância** ou **menor custo**). O resultado aparece sozinho, sem
+  botão de calcular.
+- Resultado em linguagem simples: o melhor caminho (`A → B → C`) e o total em km ou R$.
+- **Comparação dos algoritmos** sempre disponível em "Comparar os algoritmos":
+  Dijkstra e Bellman-Ford lado a lado, com total, nós visitados, arestas relaxadas e
+  tempo em microssegundos, mais um aviso de concordância.
+- **Mapa Leaflet + OpenStreetMap** mostrando todos os locais e destacando o trajeto
   calculado com uma polyline.
-- Tela de **gestão do grafo**: cadastrar e remover centros, clientes e rotas;
-  a distância é auto-calculada quando não informada.
+- Tela **Cadastros**: adicionar e remover locais (centros e clientes) e rotas; a
+  distância é calculada sozinha quando não informada.
 - Estado em memória com **seed** pré-carregado (região Ribeirão Preto / Campinas /
   São Paulo): 3 centros, 8 clientes e 17 rotas com caminhos alternativos.
 
@@ -52,7 +55,7 @@ Clique no botão acima para abrir o artigo do trabalho.
 | Estrutura | fila de prioridade (`PriorityQueue`) | relaxamento de todas as arestas `V-1` vezes |
 | Pesos negativos | não suporta | suporta + detecta ciclo negativo |
 | Parada antecipada | ao alcançar o destino | quando uma iteração não altera nada |
-| Métricas coletadas | nós visitados, tempo | arestas relaxadas, tempo |
+| Métricas coletadas | nós visitados, arestas relaxadas, tempo | nós visitados, arestas relaxadas, tempo |
 
 Ambos retornam o mesmo tipo (`ResultadoCaminho`), o que permite a comparação direta
 na interface.
@@ -112,15 +115,16 @@ Para encerrar, volte ao terminal e pressione `Ctrl+C`.
 
 ### Como usar
 
-1. Em **Calculadora de Rota** (`/`), escolha o centro de distribuição de origem,
-   o cliente de destino, o critério (**Distância** ou **Custo**) e o algoritmo
-   (**Dijkstra**, **Bellman-Ford** ou **Comparar os dois**).
-2. Clique em **Calcular rota**. O caminho aparece em laranja no mapa, e o painel
-   mostra a sequência de paradas, o peso total e as métricas de cada algoritmo.
-3. Em **Gestão do Grafo** (`/grafo`), cadastre novos centros, clientes e rotas ou
-   remova os existentes. Se a distância da rota ficar em `0`, ela é calculada
-   automaticamente por Haversine.
-4. Volte à calculadora e recalcule: o novo cliente ou rota já entra nas opções.
+1. Em **Calcular rota** (`/`), escolha **de onde a entrega sai** (centro de
+   distribuição), **para quem vai** (cliente) e **o que importa mais**
+   (📏 menor distância ou 💰 menor custo).
+2. O resultado aparece na hora: o caminho em laranja no mapa, a sequência de
+   paradas e o total em km ou R$. Ao abrir a tela já vem um exemplo calculado.
+3. Quer ver como os algoritmos se comportaram? Abra **Comparar os algoritmos**:
+   Dijkstra e Bellman-Ford lado a lado.
+4. Em **Cadastros** (`/grafo`), adicione novos locais e rotas ou remova os
+   existentes. Se a distância da rota ficar em `0`, ela é calculada sozinha.
+5. Volte a **Calcular rota**: o novo local ou rota já entra nas opções.
 
 > Os dados ficam só em memória: ao reiniciar a aplicação, o grafo volta ao
 > estado inicial (3 centros, 8 clientes, 17 rotas).
@@ -154,8 +158,8 @@ SistemaEntregas/
 │   ├── App.razor  Roteador.razor  _Imports.razor
 │   ├── Compartilhado/         LayoutPrincipal, MenuNavegacao
 │   └── Paginas/
-│       ├── Inicio.razor       "/"       calculadora de rota + mapa
-│       ├── Grafo.razor        "/grafo"  gestão do grafo
+│       ├── Inicio.razor       "/"       calcular rota + mapa
+│       ├── Grafo.razor        "/grafo"  cadastros (locais e rotas)
 │       └── Erro.razor         "/erro"
 └── wwwroot/                   css/site.css · js/mapa.js
 ```
